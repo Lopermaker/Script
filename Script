@@ -1,0 +1,80 @@
+-- LocalScript placed inside StarterGui or StarterPlayerScripts
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+-- Function to create the ScreenGui and input components
+local function createMorphMenu()
+    -- Create the ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MorphMenu"
+    screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+    
+    -- Create the Frame (container for the UI)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 150)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    frame.Parent = screenGui
+    
+    -- Create a TextBox for Player ID input
+    local textBox = Instance.new("TextBox")
+    textBox.PlaceholderText = "Enter Player ID"
+    textBox.Size = UDim2.new(0, 260, 0, 50)
+    textBox.Position = UDim2.new(0.5, -130, 0.1, 0)
+    textBox.TextScaled = true
+    textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+    textBox.Parent = frame
+
+    -- Create a Button to trigger morphing
+    local morphButton = Instance.new("TextButton")
+    morphButton.Text = "Morph to Avatar"
+    morphButton.Size = UDim2.new(0, 260, 0, 50)
+    morphButton.Position = UDim2.new(0.5, -130, 0.6, 0)
+    morphButton.TextScaled = true
+    morphButton.BackgroundColor3 = Color3.fromRGB(65, 200, 100)
+    morphButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    morphButton.Parent = frame
+
+    -- Function to morph the player into the avatar of the entered User ID
+    local function morphToPlayerAvatar(userId)
+        -- Convert to number and check if valid
+        userId = tonumber(userId)
+        if not userId then
+            warn("Invalid User ID")
+            return
+        end
+
+        -- Load the player's character (only local)
+        localPlayer:LoadCharacter()
+
+        -- Wait for the character to fully reload
+        localPlayer.CharacterAdded:Wait()
+
+        -- Get the player's character and humanoid
+        local character = localPlayer.Character
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+        -- Ensure the humanoid exists
+        if humanoid then
+            -- Fetch the avatar's HumanoidDescription from the given User ID
+            Players:GetHumanoidDescriptionFromUserId(userId):andThen(function(humanoidDescription)
+                -- Apply the fetched description to the local player's humanoid
+                humanoid:ApplyDescription(humanoidDescription)
+            end):catch(function(err)
+                warn("Failed to fetch avatar description:", err)
+            end)
+        else
+            warn("No Humanoid found in the character")
+        end
+    end
+
+    -- Button click event to trigger the morphing process
+    morphButton.MouseButton1Click:Connect(function()
+        local userId = textBox.Text -- Get the ID entered by the user
+        morphToPlayerAvatar(userId)
+    end)
+end
+
+-- Create the morphing menu when the script runs
+createMorphMenu()
